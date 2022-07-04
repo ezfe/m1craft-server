@@ -7,10 +7,14 @@
 
 import Vapor
 import InstallationManager
+import Common
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 let CLIENT_ID = "92188479-b731-4baa-b4cb-2aad9a47d10f"
 let CLIENT_SECRET = ProcessInfo.processInfo.environment["CLIENT_SECRET"]!
-let REDIRECT_URI = "http://localhost:8080/api/auth/redirect"
+let REDIRECT_URI = ProcessInfo.processInfo.environment["OAUTH_CALLBACK_URL"]!
 
 extension SignInResult: Content {}
 
@@ -26,12 +30,10 @@ struct AuthController: RouteCollection {
 	func start(req: Request) async throws -> Response {
 		req.logger.debug("Starting \(#function)")
 
-		let clientId = "92188479-b731-4baa-b4cb-2aad9a47d10f"
-		let redirectUri = REDIRECT_URI
 		let scope = "XboxLive.signin%20offline_access"
 		let sentState = try req.query.get(String.self, at: "state")
 		
-		return req.redirect(to: "https://login.live.com/oauth20_authorize.srf?client_id=\(clientId)&response_type=code&redirect_uri=\(redirectUri)&scope=\(scope)&state=\(sentState)")
+		return req.redirect(to: "https://login.live.com/oauth20_authorize.srf?client_id=\(CLIENT_ID)&response_type=code&redirect_uri=\(REDIRECT_URI)&scope=\(scope)&state=\(sentState)")
 	}
 	
 	func auth(req: Request) async throws -> Response {
@@ -242,7 +244,12 @@ func minecraftProfile(minecraftAuthResponse: MinecraftAuthResponse, logger: Logg
 
 // MARK: - Common
 
-func jsonPost<Response: Decodable>(url: URL, body: Encodable, response: Response.Type, logger: Logger) async throws -> Response {
+func jsonPost<Request: Encodable, Response: Decodable>(
+	url: URL,
+	body: Request,
+	response: Response.Type,
+	logger: Logger
+) async throws -> Response {
 	logger.debug("Starting \(#function)")
 	
 	var request = URLRequest(url: url)
@@ -258,10 +265,14 @@ func addJsonHeaders(request: inout URLRequest) {
 	request.addValue("application/json", forHTTPHeaderField: "Accept")
 }
 
-func submitAndDecode<Response: Decodable>(request: URLRequest, response: Response.Type, logger: Logger) async throws -> Response {
+func submitAndDecode<Response: Decodable>(
+	request: URLRequest,
+	response: Response.Type,
+	logger: Logger
+) async throws -> Response {
 	logger.debug("Starting \(#function)")
 
-	let (data, response) = try await URLSession.shared.data(for: request)
+	let (data, response) = try await retrieveData(for: request)
 	guard let httpResponse = response as? HTTPURLResponse else {
 		throw Abort(.internalServerError)
 	}

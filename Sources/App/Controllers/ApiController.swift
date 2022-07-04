@@ -8,7 +8,6 @@
 import Foundation
 import Vapor
 import InstallationManager
-import MinecraftVersion
 import Version
 
 struct PreflightResponse: Content {
@@ -45,7 +44,7 @@ struct ApiController: RouteCollection {
 		)
 		
 		guard let appVersion = Version(appVersionString) else {
-			print("Unexpected app version string: \(appVersionString)")
+			req.logger.warning("Unexpected app version string: \(appVersionString)")
 			return try await updateRequiredResponse.encodeResponse(status: .forbidden, for: req)
 		}
 		
@@ -72,7 +71,7 @@ struct ApiController: RouteCollection {
 			throw Abort(.notFound)
 		}
 		let version = UInt(versionParameter.dropLast(5))
-		guard let version else {
+		guard let version = version else {
 			throw Abort(.badRequest)
 		}
 		
