@@ -1,22 +1,28 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
     name: "m1craft-server",
     platforms: [
-       .macOS(.v12)
+       .macOS(.v13)
     ],
     dependencies: [
         // 💧 A server-side Swift web framework.
         .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/leaf.git", from: "4.0.0"),
+//        .package(url: "https://github.com/ezfe/minecraft-jar-command.git", branch: "main"),
+        .package(path: "/Users/ezekielelin/github_repositories/Minecraft Launcher/minecraft-jar-command"),
+        .package(url: "https://github.com/mxcl/Version.git", from: "2.0.1")
     ],
     targets: [
         .target(
             name: "App",
             dependencies: [
                 .product(name: "Leaf", package: "leaf"),
-                .product(name: "Vapor", package: "vapor")
+                .product(name: "Vapor", package: "vapor"),
+                .product(name: "InstallationManager", package: "minecraft-jar-command"),
+                .product(name: "MinecraftVersion", package: "minecraft-jar-command"),
+                .product(name: "Version", package: "Version")
             ],
             swiftSettings: [
                 // Enable better optimizations when building in Release configuration. Despite the use of
