@@ -42,7 +42,7 @@ COPY . .
 RUN swift build -c release # --static-swift-stdlib
 
 # Let Docker bind to port 8080
-EXPOSE 8080
+EXPOSE 80
 
 # Start the Vapor service when the image is run, default to listening on 8080 in production environment
 CMD ["swift", "run", "-c", "release", "Run", "serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]

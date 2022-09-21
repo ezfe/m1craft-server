@@ -35,8 +35,7 @@ func routes(_ app: Application) throws {
 		)
 		let response = try await view.encodeResponse(for: req)
 		response.headers.add(name: .cacheControl, value: "public, max-age=3600")
-		return response
-		
+		return response		
 	}
 	
 	try app.register(collection: ApiController())
