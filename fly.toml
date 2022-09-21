@@ -9,7 +9,6 @@ app = "m1craft-server"
   protocol = "tcp"
 
   [[services.ports]]
-    force_https = true
     handlers = ["http"]
     port = 80
 
