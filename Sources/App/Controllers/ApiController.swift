@@ -86,7 +86,7 @@ struct ApiController: RouteCollection {
 			case 16:
 				return JavaVersionResponse(
 					size: 38552902,
-					sha1: "69dfc26aea8c82f77adbb73bda006cb457807f53",
+					sha1: "6c8b77f739d5f80e7c278b9f174359eadee9ef3e",
 					url: "https://f001.backblazeb2.com/file/minecraft-jar-command/java/zulu-16.jre.zip",
 					version: 16
 				)
