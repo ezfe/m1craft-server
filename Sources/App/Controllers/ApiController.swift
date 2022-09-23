@@ -58,7 +58,12 @@ struct ApiController: RouteCollection {
 	
 	func getManifest(req: Request) async throws -> Response {
 		let mojangUrl = URL(string: "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json")!
-		let manifest = try await VersionManifest.download(url: mojangUrl)
+		
+		var manifest = try await VersionManifest.download(url: mojangUrl)
+		
+		if let version1_14_2 = manifest.versions.first(where: { $0.id == "1.14.2" }) {
+			manifest.versions = manifest.versions.filter { $0.releaseTime >= version1_14_2.releaseTime }
+		}
 		
 		let response = try await manifest.encodeResponse(for: req)
 		response.headers.add(name: .cacheControl, value: "public, max-age=3600")
