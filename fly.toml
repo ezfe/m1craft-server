@@ -15,3 +15,13 @@ app = "m1craft-server"
   [[services.ports]]
     handlers = ["tls", "http"]
     port = 443
+
+  [[services.http_checks]]
+    interval = "5s"
+    grace_period = "5s"
+    method = "get"
+    path = "/health"
+    protocol = "http"
+    restart_limit = 3
+    timeout = "1s"
+
