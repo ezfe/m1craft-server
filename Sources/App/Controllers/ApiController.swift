@@ -127,9 +127,10 @@ struct ApiController: RouteCollection {
 			return "https://libraries.minecraft.net/org/lwjgl/\(prefix)/\(lwjglVersion)/\(prefix)-\(lwjglVersion)\(suffix)";
 		}
 		
-		var patch = VersionPatch(id: selectedVersion.id, clientJarURL: nil, libraries: [:])
+		var patch = VersionPatch(id: selectedVersion.id, clientJarURL: nil, removeIcon: false, libraries: [:])
 		
 		if selectedVersion.releaseTime < armIncludedFromVersion.releaseTime {
+			patch.removeIcon = true
 			patch.libraries["lwjgl"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl", ".jar"),
