@@ -38,6 +38,12 @@ func routes(_ app: Application) throws {
 		return response		
 	}
 	
+	app.get("health") { (req: Request) async throws -> Response in
+		let response = try await "OK".encodeResponse(for: req)
+		response.headers.add(name: .cacheControl, value: "no-store")
+		return response
+	}
+	
 	try app.register(collection: ApiController())
 	try app.register(collection: AuthController())
 }

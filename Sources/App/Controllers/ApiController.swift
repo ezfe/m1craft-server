@@ -66,7 +66,7 @@ struct ApiController: RouteCollection {
 		return response
 	}
 	
-	func getJavaInfo(req: Request) async throws -> JavaVersionResponse {
+	func getJavaInfo(req: Request) async throws -> Response {
 		guard let versionParameter = req.parameters.get("version") else {
 			throw Abort(.notFound)
 		}
@@ -75,23 +75,24 @@ struct ApiController: RouteCollection {
 			throw Abort(.badRequest)
 		}
 		
+		let jvr: JavaVersionResponse
 		switch version {
 			case 17:
-				return JavaVersionResponse(
+				jvr = JavaVersionResponse(
 					size: 42736210,
 					sha1: "e84a8701daff8e3bd12bb607a0d63c0dd080b334",
 					url: "https://f001.backblazeb2.com/file/minecraft-jar-command/java/java-17.32.13.zip",
 					version: 17
 				)
 			case 16:
-				return JavaVersionResponse(
+				jvr = JavaVersionResponse(
 					size: 38552902,
 					sha1: "6c8b77f739d5f80e7c278b9f174359eadee9ef3e",
 					url: "https://f001.backblazeb2.com/file/minecraft-jar-command/java/zulu-16.jre.zip",
 					version: 16
 				)
 			case 8:
-				return JavaVersionResponse(
+				jvr = JavaVersionResponse(
 					size: 42339191,
 					sha1: "84615950501a3731e069844a01f865c6ece4b521",
 					url: "https://f001.backblazeb2.com/file/minecraft-jar-command/java/zulu-8.jre.zip",
@@ -100,9 +101,13 @@ struct ApiController: RouteCollection {
 			default:
 				throw Abort(.notFound)
 		}
+		
+		let response = try await jvr.encodeResponse(for: req)
+		response.headers.add(name: .cacheControl, value: "public, max-age=3600")
+		return response
 	}
 	
-	func getVersionPatch(req: Request) async throws -> VersionPatch {
+	func getVersionPatch(req: Request) async throws -> Response {
 		guard let versionParameter = req.parameters.get("version")?.dropLast(5) else {
 			throw Abort(.notFound)
 		}
@@ -122,46 +127,48 @@ struct ApiController: RouteCollection {
 			return "https://libraries.minecraft.net/org/lwjgl/\(prefix)/\(lwjglVersion)/\(prefix)-\(lwjglVersion)\(suffix)";
 		}
 		
-		var response = VersionPatch(id: selectedVersion.id, clientJarURL: nil, libraries: [:])
+		var patch = VersionPatch(id: selectedVersion.id, clientJarURL: nil, libraries: [:])
 		
 		if selectedVersion.releaseTime < armIncludedFromVersion.releaseTime {
-			response.libraries["lwjgl"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl", ".jar"),
 				macOSNativeURL: urlFor("lwjgl", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-opengl"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-opengl"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-opengl", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-opengl", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-openal"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-openal"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-openal", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-openal", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-jemalloc"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-jemalloc"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-jemalloc", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-jemalloc", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-stb"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-stb"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-stb", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-stb", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-tinyfd"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-tinyfd"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-tinyfd", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-tinyfd", "-natives-macos-arm64.jar")
 			);
-			response.libraries["lwjgl-glfw"] = VersionPatch.LibraryPatch(
+			patch.libraries["lwjgl-glfw"] = VersionPatch.LibraryPatch(
 				newLibraryVersion: lwjglVersion,
 				artifactURL: urlFor("lwjgl-glfw", ".jar"),
 				macOSNativeURL: urlFor("lwjgl-glfw", "-natives-macos-arm64.jar")
 			);
 		}
 		
+		let response = try await patch.encodeResponse(for: req)
+		response.headers.add(name: .cacheControl, value: "public, max-age=3600")
 		return response
 	}
 }
